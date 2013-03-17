@@ -1,7 +1,21 @@
 (ns task01.core
   (:require [pl.danieljanus.tagsoup :refer :all])
+  (:require clojure.pprint)
   (:gen-class))
 
+(defn extract [type args]
+  (when (and (= type :h3)
+             (= ((first args) :class) "r")
+             (= 1 1))
+    (:href (second (second args)))))
+
+(defn process-tag [type & args]
+  (let [sure-children (filter vector? args)
+        children-types (apply concat (map #(apply process-tag %) sure-children))]
+    (cons (extract type args) children-types)))
+
+(defn links [data]
+  (vec (filter (comp not nil?) (apply process-tag data))))
 
 (defn get-links []
 " 1) Find all elements containing {:class \"r\"}.
@@ -21,9 +35,7 @@ The link from the example above is 'https://github.com/clojure/clojure'.
 Example: ['https://github.com/clojure/clojure', 'http://clojure.com/', . . .]
 "
   (let [data (parse "clojure_google.html")]
-    nil))
+    (links data)))
 
 (defn -main []
   (println (str "Found " (count (get-links)) " links!")))
-
-
